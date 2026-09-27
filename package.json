@@ -1,0 +1,27 @@
+{
+  "name": "docx-vault",
+  "version": "1.0.0",
+  "description": "DOCX — Personal Digital Document Vault with Zero-Knowledge AES-256 Encryption",
+  "main": "server/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js"
+  },
+  "keywords": [
+    "document-vault",
+    "secure-storage",
+    "encryption",
+    "personal-cloud"
+  ],
+  "author": "Deepak",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1"
+  }
+}

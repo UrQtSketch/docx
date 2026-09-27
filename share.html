@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOCX — Secure Document Portal</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/modals.css">
+
+  <style>
+    .share-portal-body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: radial-gradient(circle at 50% 10%, rgba(89, 102, 255, 0.15) 0%, transparent 45%), var(--bg-base);
+    }
+    .portal-card {
+      width: 100%;
+      max-width: 540px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card);
+      border-radius: var(--radius-xl);
+      padding: 32px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+      text-align: center;
+      position: relative;
+    }
+    .portal-brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body class="share-portal-body">
+  <div class="portal-card" id="portalContainer">
+    <div class="portal-brand">
+      <div class="brand-logo-icon" style="width: 38px; height: 38px; font-size: 18px;">▰</div>
+      <h1 style="font-size: 22px; margin: 0;">Docx</h1>
+    </div>
+
+    <div id="loadingState">
+      <div style="font-size: 36px; animation: pulseGlow 1.5s infinite; margin-bottom: 12px;">🔒</div>
+      <h3 style="font-size: 18px;">Verifying Secure Access Token...</h3>
+      <p style="font-size: 13px; color: var(--text-muted);">Decrypting vault permissions</p>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script type="module">
+    import { toast } from './js/components/toast.js';
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const container = document.getElementById('portalContainer');
+
+    async function checkShare(password = '') {
+      if (!token) {
+        renderError('No share token provided in the link.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/shares/verify/${encodeURIComponent(token)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password })
+        });
+
+        const data = await res.json();
+
+        if (res.status === 404 || res.status === 410) {
+          renderError(data.error || 'This link has expired or access was revoked.');
+          return;
+        }
+
+        if (data.requiresPassword) {
+          renderPasswordChallenge(data);
+          return;
+        }
+
+        if (data.document) {
+          renderDocumentView(data.document, password);
+        }
+      } catch (err) {
+        renderError('Failed to connect to the secure vault server.');
+      }
+    }
+
+    function renderPasswordChallenge(data) {
+      container.innerHTML = `
+        <div class="portal-brand">
+          <div class="brand-logo-icon" style="width: 38px; height: 38px; font-size: 18px;">▰</div>
+          <h1 style="font-size: 22px; margin: 0;">Docx Vault</h1>
+        </div>
+
+        <div style="font-size: 40px; margin-bottom: 12px;">🔐</div>
+        <h3 style="font-size: 19px; margin: 0 0 6px 0;">Password Protected Document</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin: 0 0 20px 0;">
+          <b>${data.ownerName || 'The sender'}</b> has protected "<b>${data.documentName}</b>" with an access password.
+        </p>
+
+        <div class="form-group" style="text-align: left; margin-bottom: 16px;">
+          <label class="form-label" for="portalPass">Enter Access Password</label>
+          <input type="password" id="portalPass" class="form-input" placeholder="Enter password..." autofocus>
+        </div>
+
+        <button class="btn btn-primary" id="submitPassBtn" style="width: 100%;">
+          🔓 Unlock & View Document
+        </button>
+      `;
+
+      const input = document.getElementById('portalPass');
+      const btn = document.getElementById('submitPassBtn');
+
+      const submit = () => {
+        const val = input.value.trim();
+        if (!val) {
+          toast.warning('Please enter the password.');
+          return;
+        }
+        checkShare(val);
+      };
+
+      btn.addEventListener('click', submit);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') submit();
+      });
+    }
+
+    function renderDocumentView(doc, password = '') {
+      const streamUrl = `/api/shares/stream/${encodeURIComponent(token)}?pass=${encodeURIComponent(password)}`;
+      const downloadUrl = `${streamUrl}&dl=1`;
+
+      container.innerHTML = `
+        <div class="portal-brand">
+          <div class="brand-logo-icon" style="width: 38px; height: 38px; font-size: 18px;">▰</div>
+          <h1 style="font-size: 22px; margin: 0;">Docx Vault</h1>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 20px;">
+          <div class="file-badge ${doc.type.toLowerCase()}" style="width: 46px; height: 52px; font-size: 12px;">
+            ${doc.type}
+          </div>
+          <div style="text-align: left;">
+            <h3 style="font-size: 17px; margin: 0 0 4px 0;">${doc.name}</h3>
+            <span style="font-size: 12px; color: var(--text-muted);">${doc.size} • Shared by ${doc.owner}</span>
+          </div>
+        </div>
+
+        <div class="security-callout info" style="margin-bottom: 20px; text-align: left;">
+          <span>🔒</span>
+          <div>
+            <b>Encrypted Delivery:</b> Streamed securely via AES-256 decrypted buffer.
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: center;">
+          ${doc.accessType === 'Download allowed' ? `
+            <a href="${downloadUrl}" class="btn btn-primary" style="flex: 1;">
+              ↓ Download Document (${doc.size})
+            </a>
+          ` : `
+            <span class="badge badge-warning" style="padding: 10px 16px; font-size: 13px;">
+              👁 View Only Document (Download Restricted by Owner)
+            </span>
+          `}
+        </div>
+
+        <div style="margin-top: 24px; border-top: 1px solid var(--border-subtle); padding-top: 14px; font-size: 11px; color: var(--text-muted);">
+          Protected by Docx Zero-Knowledge Personal Vault
+        </div>
+      `;
+    }
+
+    function renderError(message) {
+      container.innerHTML = `
+        <div class="portal-brand">
+          <div class="brand-logo-icon" style="width: 38px; height: 38px; font-size: 18px;">▰</div>
+          <h1 style="font-size: 22px; margin: 0;">Docx</h1>
+        </div>
+
+        <div style="font-size: 48px; margin-bottom: 12px;">⚠️</div>
+        <h3 style="font-size: 19px; margin: 0 0 8px 0;">Link Inaccessible</h3>
+        <p style="font-size: 13.5px; color: #ff9aa6; margin: 0 0 24px 0;">${message}</p>
+        <a href="/" class="btn" style="display: inline-flex;">Go to Docx Vault</a>
+      `;
+    }
+
+    // Execute check on page load
+    checkShare();
+  </script>
+</body>
+</html>

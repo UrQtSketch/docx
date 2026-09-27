@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DOCX — Your Documents. Always With You.</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- CSS Architecture -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/modals.css">
+  <link rel="stylesheet" href="css/views.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- LEFT SIDEBAR -->
+    <aside class="app-sidebar" id="appSidebar" aria-label="Main Navigation">
+      <div class="sidebar-brand">
+        <div class="brand-logo-icon">▰</div>
+        <div class="brand-text">
+          <h1>Docx</h1>
+          <p>Your Documents. Always With You.</p>
+        </div>
+      </div>
+
+      <!-- Main Navigation Links -->
+      <nav class="sidebar-nav">
+        <a href="#dashboard" class="nav-link active" data-view="dashboard">
+          <span class="nav-icon">▣</span>
+          <span>My Documents</span>
+          <span class="nav-count" id="navAllDocsCount">12</span>
+        </a>
+        <a href="#recent" class="nav-link" data-view="recent">
+          <span class="nav-icon">◷</span>
+          <span>Recent</span>
+        </a>
+        <a href="#starred" class="nav-link" data-view="starred">
+          <span class="nav-icon">☆</span>
+          <span>Starred</span>
+          <span class="nav-count" id="navStarredCount">5</span>
+        </a>
+        <a href="#shared" class="nav-link" data-view="shared">
+          <span class="nav-icon">⌯</span>
+          <span>Shared</span>
+        </a>
+        <a href="#trash" class="nav-link" data-view="trash">
+          <span class="nav-icon">🗑</span>
+          <span>Trash</span>
+          <span class="nav-count" id="navTrashCount">0</span>
+        </a>
+      </nav>
+
+      <!-- Categories Section -->
+      <div class="sidebar-section-header">
+        <span>Categories</span>
+        <button id="sidebarAddCatBtn" title="Add new category">＋</button>
+      </div>
+
+      <div class="sidebar-categories" id="sidebarCategoriesList">
+        <!-- Injected reactively by State -->
+      </div>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <div class="vault-status-card" style="padding: 12px 14px; background: rgba(255, 255, 255, 0.025); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); display: flex; align-items: center; gap: 10px;">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: #39d98a; box-shadow: 0 0 8px #39d98a; display: inline-block; flex-shrink: 0;"></span>
+          <div>
+            <div style="font-size: 12px; font-weight: 600; color: #ffffff;">Secure Private Vault</div>
+            <div style="font-size: 10.5px; color: var(--text-muted);">Zero-Knowledge Protected</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN APP CONTENT & HEADER -->
+    <main class="app-main">
+      <!-- TOP HEADER -->
+      <header class="app-header">
+        <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle Navigation Drawer">☰</button>
+        
+        <!-- Search Input -->
+        <div class="header-search">
+          <div class="search-icon-wrapper">⌕</div>
+          <input 
+            type="search" 
+            id="headerSearchInput" 
+            class="header-search-input" 
+            placeholder="Search documents, tags, categories..." 
+            autocomplete="off"
+            aria-label="Search documents"
+          >
+          <span class="search-shortcut-hint">Ctrl K</span>
+        </div>
+
+        <!-- Header Right Utilities -->
+        <div class="header-right">
+          <button class="icon-btn" id="themeToggleBtn" title="Theme Mode: Obsidian Glass" aria-label="Toggle theme">
+            ☼
+          </button>
+          
+          <button class="icon-btn" id="notificationsBtn" title="Notifications" aria-label="View notifications">
+            🔔
+            <span class="icon-badge-dot"></span>
+          </button>
+
+          <!-- User Profile Trigger -->
+          <div class="user-profile-btn" id="userProfileBtn" role="button" tabindex="0" aria-label="User Account Menu">
+            <div class="user-avatar">D</div>
+            <span class="user-name">Deepak</span>
+            <span class="user-chevron">▾</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- DYNAMIC CONTENT VIEW AREA -->
+      <section class="app-content">
+        <div class="view-workspace" id="viewWorkspace">
+          <!-- Active View Container -->
+          <div id="viewContainer">
+            <!-- Rendered by View Controllers -->
+          </div>
+
+          <!-- Docked Right Details Panel -->
+          <aside class="details-panel" id="detailsPanelContainer" aria-label="Document Metadata Panel">
+            <!-- Rendered by DetailsPanelComponent -->
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <!-- MOBILE BOTTOM NAVIGATION -->
+    <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+      <a href="#dashboard" class="mobile-nav-item active" data-view="dashboard">
+        <span class="mobile-nav-icon">▣</span>
+        <span>Vault</span>
+      </a>
+      <a href="#recent" class="mobile-nav-item" data-view="recent">
+        <span class="mobile-nav-icon">◷</span>
+        <span>Recent</span>
+      </a>
+      <button class="mobile-upload-fab" id="mobileUploadFab" title="Upload Document" aria-label="Upload document">
+        ↑
+      </button>
+      <a href="#shared" class="mobile-nav-item" data-view="shared">
+        <span class="mobile-nav-icon">⌯</span>
+        <span>Shared</span>
+      </a>
+      <a href="#starred" class="mobile-nav-item" data-view="starred">
+        <span class="mobile-nav-icon">☆</span>
+        <span>Starred</span>
+      </a>
+      <button class="mobile-nav-item" data-view="more" aria-label="More navigation options">
+        <span class="mobile-nav-icon">☰</span>
+        <span>More</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- FULLSCREEN AUTHENTICATED WELCOME / LOGIN OVERLAY -->
+  <div class="auth-screen-overlay active" id="authScreen" role="dialog" aria-modal="true"></div>
+
+  <!-- MODAL MOUNT POINTS -->
+  <div class="modal-backdrop" id="uploadModal" role="dialog" aria-modal="true" aria-labelledby="uploadTitle"></div>
+  <div class="modal-backdrop" id="previewModal" role="dialog" aria-modal="true"></div>
+  <div class="modal-backdrop" id="shareModal" role="dialog" aria-modal="true"></div>
+  <div class="modal-backdrop" id="folderModal" role="dialog" aria-modal="true"></div>
+  <div class="modal-backdrop" id="categoryModal" role="dialog" aria-modal="true"></div>
+  <div class="modal-backdrop" id="commandPalette" role="dialog" aria-modal="true"></div>
+
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Application Module Entry Point -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
